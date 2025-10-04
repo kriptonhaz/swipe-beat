@@ -67,19 +67,27 @@ const beatmap: Beatmap = {
   startOffset: 8.0,
   sequences: [
     {
-      time: 8.1,
-      pattern: ["left", "up", "right", "down"],
+      time: 9,
+      pattern: [],
       beatMatch: {
         direction: "up",
-        beatTime: 12.5,
+        beatTime: 11.5,
       },
     },
     {
-      time: 13.2,
-      pattern: ["right", "left", "up", "down", "left", "right"],
+      time: 11.4,
+      pattern: ["right", "left", "up"],
       beatMatch: {
         direction: "down",
-        beatTime: 17.8,
+        beatTime: 14.2,
+      },
+    },
+    {
+      time: 15.4,
+      pattern: ["down", "right", "right"],
+      beatMatch: {
+        direction: "down",
+        beatTime: 16.6,
       },
     },
   ],
@@ -360,7 +368,8 @@ export default function PlayScreen() {
                   }
                 />
               )}
-            {sequenceCards.length === 0 && currentSequenceIndex < beatmap.sequences.length && (
+            {sequenceCards.length === 0 &&
+              currentSequenceIndex < beatmap.sequences.length &&
               (() => {
                 const nextSequence = beatmap.sequences[currentSequenceIndex];
                 const targetTime = nextSequence?.time ?? currentTime;
@@ -376,17 +385,23 @@ export default function PlayScreen() {
                 const remaining = Math.max(0, targetTime - currentTime);
                 return (
                   <View style={styles.waitingContainer}>
-                    <Text style={styles.waitingTitle}>Next sequence incoming…</Text>
+                    <Text style={styles.waitingTitle}>
+                      Next sequence incoming…
+                    </Text>
                     <Text style={styles.waitingSubtitle}>
                       Starts in {remaining.toFixed(1)}s
                     </Text>
                     <View style={styles.progressTrack}>
-                      <View style={[styles.progressFill, { width: `${ratio * 100}%` }]} />
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${ratio * 100}%` },
+                        ]}
+                      />
                     </View>
                   </View>
                 );
-              })()
-            )}
+              })()}
           </View>
           <View style={styles.scoreContainer}>
             <Text style={styles.scoreText}>
@@ -462,30 +477,30 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   waitingContainer: {
-    width: '80%',
-    alignItems: 'center',
+    width: "80%",
+    alignItems: "center",
     gap: 10,
   },
   waitingTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
     marginBottom: 4,
   },
   waitingSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
     marginBottom: 8,
   },
   progressTrack: {
-    width: '100%',
+    width: "100%",
     height: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#00FFFF',
+    height: "100%",
+    backgroundColor: "#00FFFF",
   },
 });
