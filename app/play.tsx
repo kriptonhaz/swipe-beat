@@ -91,6 +91,7 @@ export default function PlayScreen() {
   );
   const [currentTime, setCurrentTime] = useState(0);
   const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
+  const [waitingStartTime, setWaitingStartTime] = useState<number | null>(null);
 
   const [sequenceCards, setSequenceCards] = useState<RhythmCard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -198,6 +199,7 @@ export default function PlayScreen() {
         const newCards = generateSequenceCards(currentSequence);
         setSequenceCards(newCards);
         setCurrentCardIndex(0);
+        setWaitingStartTime(null);
       }
 
       // Check if all sequences are completed
@@ -290,10 +292,16 @@ export default function PlayScreen() {
           const newCards = generateSequenceCards(nextSequence);
           setSequenceCards(newCards);
           setCurrentCardIndex(0);
+          setWaitingStartTime(null);
         } else {
           // Otherwise clear cards and wait for the useEffect timing logic to load when time is reached
           setSequenceCards([]);
           setCurrentCardIndex(0);
+          if (nextSequence) {
+            setWaitingStartTime(currentTime);
+          } else {
+            setWaitingStartTime(null);
+          }
         }
       }
     },
@@ -352,6 +360,33 @@ export default function PlayScreen() {
                   }
                 />
               )}
+            {sequenceCards.length === 0 && currentSequenceIndex < beatmap.sequences.length && (
+              (() => {
+                const nextSequence = beatmap.sequences[currentSequenceIndex];
+                const targetTime = nextSequence?.time ?? currentTime;
+                const anchorTime =
+                  waitingStartTime !== null
+                    ? waitingStartTime
+                    : currentSequenceIndex > 0
+                    ? beatmap.sequences[currentSequenceIndex - 1].time
+                    : beatmap.startOffset;
+                const totalWait = Math.max(0.0001, targetTime - anchorTime);
+                const elapsed = Math.max(0, currentTime - anchorTime);
+                const ratio = Math.max(0, Math.min(1, elapsed / totalWait));
+                const remaining = Math.max(0, targetTime - currentTime);
+                return (
+                  <View style={styles.waitingContainer}>
+                    <Text style={styles.waitingTitle}>Next sequence incoming…</Text>
+                    <Text style={styles.waitingSubtitle}>
+                      Starts in {remaining.toFixed(1)}s
+                    </Text>
+                    <View style={styles.progressTrack}>
+                      <View style={[styles.progressFill, { width: `${ratio * 100}%` }]} />
+                    </View>
+                  </View>
+                );
+              })()
+            )}
           </View>
           <View style={styles.scoreContainer}>
             <Text style={styles.scoreText}>
@@ -425,5 +460,32 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  waitingContainer: {
+    width: '80%',
+    alignItems: 'center',
+    gap: 10,
+  },
+  waitingTitle: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  waitingSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 8,
+  },
+  progressTrack: {
+    width: '100%',
+    height: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#00FFFF',
   },
 });
