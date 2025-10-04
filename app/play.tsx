@@ -1,7 +1,7 @@
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CardProgressIndicator } from "../components/CardProgressIndicator";
 import { SwipeableCard } from "../components/SwipeableCard";
@@ -83,7 +83,7 @@ const beatmap: Beatmap = {
       },
     },
     {
-      time: 15.4,
+      time: 14.4,
       pattern: ["down", "right", "right"],
       beatMatch: {
         direction: "down",
@@ -316,6 +316,39 @@ export default function PlayScreen() {
     [sequenceCards, currentCardIndex, currentSequenceIndex, isBeatMatch]
   );
 
+  // Web-only: support keyboard arrow controls for desktop/laptop users
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (gamePhase !== "playing") return;
+      let dir: "left" | "right" | "up" | "down" | null = null;
+      switch (e.key) {
+        case "ArrowLeft":
+          dir = "left";
+          break;
+        case "ArrowRight":
+          dir = "right";
+          break;
+        case "ArrowUp":
+          dir = "up";
+          break;
+        case "ArrowDown":
+          dir = "down";
+          break;
+      }
+      if (dir) {
+        e.preventDefault();
+        handleSwipe(dir);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [handleSwipe, gamePhase]);
+
   // Prepare progress indicator data
   const progressCards = sequenceCards.map((card, index) => ({
     id: card.id,
@@ -403,6 +436,9 @@ export default function PlayScreen() {
                 );
               })()}
           </View>
+          {Platform.OS === "web" && (
+            <Text style={styles.webHint}>Use arrow keys ← ↑ ↓ →</Text>
+          )}
           <View style={styles.scoreContainer}>
             <Text style={styles.scoreText}>
               Beat Hits: {beatMatchScore.hits}
@@ -502,5 +538,12 @@ const styles = StyleSheet.create({
   progressFill: {
     height: "100%",
     backgroundColor: "#00FFFF",
+  },
+  webHint: {
+    marginTop: 10,
+    color: "#FFFFFF",
+    fontSize: 14,
+    textAlign: "center",
+    opacity: 0.8,
   },
 });
