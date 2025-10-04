@@ -19,8 +19,8 @@ export default function ResultScreen() {
   const failedCount = parseInt(params.failedCount as string) || 0;
   const totalCards = parseInt(params.totalCards as string) || 0;
   
-  // Calculate accuracy percentage
-  const accuracy = totalCards > 0 ? ((successCount / totalCards) * 100).toFixed(1) : "0.0";
+  // Calculate accuracy percentage based on beat matches
+  const beatAccuracy = totalCards > 0 ? ((successCount / totalCards) * 100).toFixed(1) : "0.0";
 
   const handlePlayAgain = () => {
     router.push("/play");
@@ -42,24 +42,24 @@ export default function ResultScreen() {
           </View>
           
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{accuracy}%</Text>
-            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{beatAccuracy}%</Text>
+            <Text style={styles.statLabel}>Beat Accuracy</Text>
           </View>
         </View>
         
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Correct Swipes:</Text>
+            <Text style={styles.detailLabel}>Beat Hits:</Text>
             <Text style={[styles.detailValue, styles.successText]}>{successCount}</Text>
           </View>
           
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Incorrect Swipes:</Text>
+            <Text style={styles.detailLabel}>Beat Misses:</Text>
             <Text style={[styles.detailValue, styles.failedText]}>{failedCount}</Text>
           </View>
           
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Total Cards:</Text>
+            <Text style={styles.detailLabel}>Total Sequences:</Text>
             <Text style={styles.detailValue}>{totalCards}</Text>
           </View>
         </View>

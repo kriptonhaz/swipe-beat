@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -8,6 +8,8 @@ import Animated, {
   runOnJS,
   interpolate,
   Extrapolate,
+  withRepeat,
+  withSequence,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,6 +20,8 @@ interface SwipeableCardProps {
   onSwipe: (direction: 'left' | 'right' | 'up' | 'down') => void;
   index: number;
   targetDirection: 'left' | 'right' | 'up' | 'down';
+  isBeatMatch?: boolean;
+  isPulsing?: boolean;
 }
 
 const SWIPE_THRESHOLD = 100;
@@ -27,12 +31,43 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
   color, 
   onSwipe, 
   index,
-  targetDirection 
+  targetDirection,
+  isBeatMatch = false,
+  isPulsing = false
 }) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+  
+  // Perfect indicator circle animation for beat match cards
+  const perfectCircleScale = useSharedValue(1);
+  const perfectCircleOpacity = useSharedValue(0.3);
+
+  // Start pulsing animation for beat match cards
+  useEffect(() => {
+    if (isBeatMatch && isPulsing) {
+      perfectCircleScale.value = withRepeat(
+        withSequence(
+          withTiming(1.2, { duration: 300 }),
+          withTiming(1, { duration: 300 })
+        ),
+        -1,
+        false
+      );
+      perfectCircleOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.8, { duration: 300 }),
+          withTiming(0.3, { duration: 300 })
+        ),
+        -1,
+        false
+      );
+    } else {
+      perfectCircleScale.value = withTiming(1, { duration: 200 });
+      perfectCircleOpacity.value = withTiming(0.3, { duration: 200 });
+    }
+  }, [isBeatMatch, isPulsing]);
 
   // Helper function to get arrow icon name based on direction
   const getArrowIcon = (direction: 'left' | 'right' | 'up' | 'down') => {
@@ -138,6 +173,14 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
     };
   });
 
+  // Perfect circle animation style
+  const perfectCircleStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: perfectCircleScale.value }],
+      opacity: perfectCircleOpacity.value,
+    };
+  });
+
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View 
@@ -156,6 +199,11 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
             style={styles.arrowIcon}
           />
         </View>
+        
+        {/* Perfect indicator circle for beat match cards */}
+        {isBeatMatch && (
+          <Animated.View style={[styles.perfectCircle, perfectCircleStyle]} />
+        )}
       </Animated.View>
     </GestureDetector>
   );
@@ -163,7 +211,6 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    position: 'absolute',
     width: SCREEN_WIDTH * 0.9,
     height: SCREEN_HEIGHT * 0.7,
     borderRadius: 20,
@@ -181,5 +228,18 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
+  },
+  perfectCircle: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: '#00FFFF',
+    top: '50%',
+    left: '50%',
+    marginTop: -60,
+    marginLeft: -60,
+    backgroundColor: 'transparent',
   },
 });
